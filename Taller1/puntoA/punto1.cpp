@@ -1,7 +1,12 @@
 #include <iostream>
 #include <cmath>
+#include <fstream>
 #include "vector.h"
-using namespace std;
+
+using std::cout;
+using std::sqrt;
+using std::endl;
+using std::fabs;
 
 //Constantes del problema físico
 const int N=2;
@@ -24,13 +29,11 @@ class Cuerpo{
 private:
   vector3D r,V,F; double m,R;
 public:
-  void Inicie(double x0,double y0,double z0,
-              double Vx0,double Vy0,double Vz0,double m0,double R0);
-  void BorreFuerza(void){F.load(0,0,0);};// Inline
-  void SumeFuerza(vector3D dF){F+=dF;};// Inline
+  void Inicie(double x0,double y0,double z0,double Vx0,double Vy0,double Vz0,double m0,double R0);
+  void BorreFuerza(void){F.load(0,0,0);}; // Inline
+  void SumeFuerza(vector3D dF){F+=dF;}; // Inline
   void Mueva_r(double dt,double coeficiente);
   void Mueva_V(double dt,double coeficiente);
-  void Dibujese(void);
   double Getx(void){return r.x();}; // Inline
   double Gety(void){return r.y();}; // Inline
   friend class Colisionador;
@@ -44,6 +47,8 @@ public:
 };
 
 //-------Implementar las funciones de las clases------
+
+
 //------- Funciones de la clase cuerpo --------
 void Cuerpo::Inicie(double x0,double y0,double z0,
                     double Vx0,double Vy0,double Vz0,double m0,double R0){
@@ -58,17 +63,13 @@ void Cuerpo::Mueva_V(double dt,double coeficiente){
   V+=F*(coeficiente*dt/m);
 }
 
-void Cuerpo::Dibujese(void){
-  cout<<" , "<<r.x()<<"+"<<R<<"*cos(t),"<<r.y()<<"+"<<R<<"*sin(t)";
-}
-
 
 //------- Funciones de la clase Colisionador --------
 void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta){
   int i,j;
   //Borro las fuerzas de todos los planetas
   for(i=0;i<N;i++)
-    Planeta[i]. BorreFuerza();
+    Planeta[i].BorreFuerza();
   //Recorro por parejas, calculo la fuerza de cada pareja y se la sumo a los dos
   for(i=0;i<N;i++)
     for(j=0;j<i;j++)
@@ -83,57 +84,42 @@ void Colisionador::CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2){
   Planeta1.SumeFuerza(F1);  Planeta2.SumeFuerza(F1*(-1));
 }
 //----------- Funciones Globales -----------
-//---Funciones de Animacion---
-void InicieAnimacion(void){
-  //  cout<<"set terminal gif animate"<<endl; 
-  //  cout<<"set output 'UnBalon.gif'"<<endl;
-  cout<<"unset key"<<endl;
-  cout<<"set xrange[-11:11]"<<endl;
-  cout<<"set yrange[-11:11]"<<endl;
-  cout<<"set size ratio -1"<<endl;
-  cout<<"set parametric"<<endl;
-  cout<<"set trange [0:7]"<<endl;
-  cout<<"set isosamples 12"<<endl;  
-}
-void InicieCuadro(void){
-  cout<<"plot 0,0 ";
-}
-void TermineCuadro(void){
-  cout<<endl;
-}
 
 int main(){
-  double r=11,m0=10,m1=1;
+  double r=1000.0; //Distancia entre Júpiter y el Sol.
+  double m0= 1047.0;  //Masa del sol.
+  double m1=1; //Masa de Júpiter.
   double M=m0+m1, mu=m0*m1/M;
   double x0=-m1*r/M,x1=m0*r/M;
   double omega=sqrt(G*M/(r*r*r)); double T=2*M_PI/omega;
   double V0=omega*x0, V1=omega*x1;
-  double t,dt=0.1,ttotal=T;
-  int Ncuadros=30000; double tdibujo,tcuadro=ttotal/Ncuadros;
+  int numOrbitas = 20;
+  double t, ttotal=numOrbitas*T;
+
+  double dt=1; //Paso de tiempo
   Cuerpo Planeta[N];
   Colisionador Newton;
   int i;
 
-//  InicieAnimacion();
-  
   //INICIO
   //---------------(x0,y0,z0,Vx0,   Vy0,Vz0,m0,R0)
   Planeta[0].Inicie(x0, 0, 0,  0, V0,  0,m0,1.0);
   Planeta[1].Inicie(x1, 0, 0,  0, V1,  0,m1,0.5);
+
+
+
+
+  std::ofstream fout;
+  fout.open("data.txt");
+  fout.precision(15);
+  fout.setf(std::ios::scientific);
+
   //CORRO
-  for(t=tdibujo=0;t<ttotal;t+=dt,tdibujo+=dt){
+  for(t=0;t<ttotal;t+=dt){
 
-  //   if(tdibujo>tcuadro){
 
-  //     InicieCuadro();
-  //     for(i=0;i<N;i++) Planeta[i].Dibujese();
-  //     TermineCuadro();
 
-  //     tdibujo=0;
-  //   }
-//  cout<<Planeta[0].Getx()<<" "<<Planeta[0].Gety()<<endl;
-   cout<<Planeta[0].Getx()<<" "<<Planeta[0].Gety()<<endl;
-
+   fout<<Planeta[0].Getx()<<" "<<Planeta[0].Gety()<<" "<<Planeta[1].Getx()<<" "<<Planeta[1].Gety()<<endl;
 
   for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
   Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Um2lambdau2);
@@ -144,7 +130,38 @@ int main(){
   for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,chi);
   Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++)Planeta[i].Mueva_V(dt,Um2lambdau2);
   for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
-    
-}
+
+    if(t > ttotal - 2*dt){
+  cout<<Planeta[1].Gety()<<endl;
+  }
+  }
+
+  fout.close();
 return 0;
 }
+
+
+
+
+/*
+
+  int contadorOrbitas = 0; //Cuenta el número de órbitas
+  double posInicialJ = 0;
+  double precisionPosInicialJ = 1.0e-2;
+  bool contarValoresAdicionales = false;
+  int contadorValoresAdicionales = 0;
+
+
+
+if(contarValoresAdicionales){
+    contadorValoresAdicionales +=1;
+  }
+  if((fabs(Planeta[1].Gety() - posInicialJ) < precisionPosInicialJ) && (Planeta[1].Getx()>0)){
+    contadorOrbitas+=1;
+    cout<<"contador: "<<contadorOrbitas<<" "<<"Valor: "<<Planeta[1].Gety()<<" Tiempo: "<<t<<endl;
+   if(contadorOrbitas == numOrbitas*2){cout<<"contadorBreak: "<<contadorOrbitas<<endl; contarValoresAdicionales= true;}
+  }
+
+  cout<<"Contador valores adicionales: "<<contadorValoresAdicionales<<endl;
+
+ */
