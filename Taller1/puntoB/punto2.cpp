@@ -95,7 +95,7 @@ int main(){
   double x0=-m1*r/M,x1=m0*r/M;
   double omega=sqrt(G*M/(r*r*r)); double T=2*M_PI/omega;
   double V0=omega*x0, V1=omega*x1;
-  int numOrbitas = 2;
+  int numOrbitas = 20;
   double t, ttotal=numOrbitas*T;
 
   double dt=1; //Paso de tiempo
@@ -108,13 +108,17 @@ int main(){
   Planeta[0].Inicie(x0, 0, 0,  0, V0,  0,m0,1.0);
   Planeta[1].Inicie(x1, 0, 0,  0, V1,  0,m1,0.5);
 
+  cout<<"Inicial sol"<<x0<<endl;
+  cout<<"Inicial Júpiter"<<x1<<endl;
+
+
 
 
 
   std::ofstream fout;
   fout.open("data.txt");
-  fout.precision(15);
-  fout.setf(std::ios::scientific);
+//  fout.precision(15);
+//  fout.setf(std::ios::scientific);
 
   //Se calcula el movimiento.
   for(t=0;t<ttotal;t+=dt){
@@ -132,7 +136,7 @@ int main(){
   double y_jp = -x_j*sin(omegaT) + y_j*cos(omegaT);
 
   // fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<endl;
-  fout<<x_s<<" "<<y_s<<" "<<x_j<<" "<<y_j<<" "<<t<<endl;
+  fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<" "<<t<<endl;
   //   fout<<Planeta[0].Getx()<<" "<<Planeta[0].Gety()<<" "<<Planeta[1].Getx()<<" "<<Planeta[1].Gety()<<endl;
 
   for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
