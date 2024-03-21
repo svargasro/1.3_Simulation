@@ -3,8 +3,8 @@ all: plot.pdf
 %.x: %.o
 	g++ $^ -o $@
 
-data.txt: punto3.x
-	./punto3.x
+data.txt: punto4.x
+	./punto4.x
 
 plot.pdf: data.txt plot.py
 	python3 plot.py
