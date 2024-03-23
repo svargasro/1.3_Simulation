@@ -2,11 +2,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-x_s, y_s, x_j, y_j, t = np.genfromtxt('data.txt', unpack=True, usecols=(0, 1, 2, 3, 4))
+x_s, y_s, x_j, y_j, x_t, y_t, t = np.genfromtxt('data.txt', unpack=True, usecols=(0, 1, 2, 3, 4, 5, 6))
 
-plt.style.use('seaborn-v0_8')
+#plt.style.use('seaborn-v0_8')
 
-fig, axes = plt.subplots(4,1,figsize=(6, 6))
+fig, axes = plt.subplots(6,1,figsize=(6, 6))
 
 
 
@@ -22,8 +22,10 @@ axes[0].plot(t, x_s, '.', color='yellow', label=r'$(x)_{S}$')
 axes[1].plot(t, y_s, '.', color='yellow', label=r'$(y)_{S}$')
 axes[2].plot(t, x_j, '.', color='black', label=r'$(x)_{J}$')
 axes[3].plot(t, y_j, '.', color='black', label=r'$(y)_{J}$')
+axes[4].plot(t, x_t, '.', color='black', label=r'$(y)_{J}$')
+axes[5].plot(t, y_t, '.', color='black', label=r'$(y)_{J}$')
 
-for i in range(0,4):
+for i in range(0,6):
     axes[i].legend()
 
 
