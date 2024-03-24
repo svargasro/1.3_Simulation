@@ -24,7 +24,7 @@ const double Um2chiplusxi=1-2*(chi+xi);
 
 //--------------- Declarar las clases-----------
 class Cuerpo;
-class Colisionador;
+class Interaction;
 
 //--------- Declarar las interfases de las clases---------
 class Cuerpo{
@@ -38,10 +38,10 @@ public:
   void Mueva_V(double dt,double coeficiente);
   double Getx(void){return r.x();}; // Inline
   double Gety(void){return r.y();}; // Inline
-  friend class Colisionador;
+  friend class Interaction;
 };
 
-class Colisionador{
+class Interaction{
 private:
 public:
   void CalculeTodasLasFuerzas(Cuerpo * Planetas);
@@ -66,8 +66,8 @@ void Cuerpo::Mueva_V(double dt,double coeficiente){
 }
 
 
-//------- Funciones de la clase Colisionador --------
-void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta){
+//------- Funciones de la clase Interaction --------
+void Interaction::CalculeTodasLasFuerzas(Cuerpo * Planeta){
   int i,j;
   //Borro las fuerzas de todos los planetas
   for(i=0;i<N;i++)
@@ -77,7 +77,7 @@ void Colisionador::CalculeTodasLasFuerzas(Cuerpo * Planeta){
     for(j=0;j<i;j++)
       CalculeFuerzaEntre(Planeta[i],Planeta[j]);
 }
-void Colisionador::CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2){
+void Interaction::CalculeFuerzaEntre(Cuerpo & Planeta1,Cuerpo & Planeta2){
   double m1=Planeta1.m, m2=Planeta2.m;
   vector3D r21=Planeta2.r-Planeta1.r;
   double r2=r21.norm2();
@@ -91,16 +91,17 @@ int main(){
   double r=1000.0; //Distancia entre Júpiter y el Sol.
   double m0= 1047.0;  //Masa del sol.
   double m1=1; //Masa de Júpiter.
-  double M=m0+m1, mu=m0*m1/M;
-  double x0=-m1*r/M,x1=m0*r/M;
-  double omega=sqrt(G*M/(r*r*r)); double T=2*M_PI/omega;
-  double V0=omega*x0, V1=omega*x1;
-  int numOrbitas = 20;
+  double M=m0+m1;
+  double x0=-m1*r/M,x1=m0*r/M; //Condición inicial en la posición para movimiento circular.
+  double omega=sqrt(G*M/(r*r*r)); //Condición inicial en la velocidad angular para movimiento circular.
+  double T=2*M_PI/omega;
+  double V0=omega*x0, V1=omega*x1; //Condiciones iniciales en la velocidad para movimiento circular.
+  int numOrbitas = 20; //Número total de órbitas.
   double t, ttotal=numOrbitas*T;
 
   double dt=1; //Paso de tiempo
   Cuerpo Planeta[N];
-  Colisionador Newton;
+  Interaction Newton;
   int i;
 
   //INICIO
@@ -108,36 +109,33 @@ int main(){
   Planeta[0].Inicie(x0, 0, 0,  0, V0,  0,m0,1.0);
   Planeta[1].Inicie(x1, 0, 0,  0, V1,  0,m1,0.5);
 
-  cout<<"Inicial sol"<<x0<<endl;
-  cout<<"Inicial Júpiter"<<x1<<endl;
-
-
-
-
-
   std::ofstream fout;
   fout.open("data.txt");
-//  fout.precision(15);
-//  fout.setf(std::ios::scientific);
+
 
   //Se calcula el movimiento.
   for(t=0;t<ttotal;t+=dt){
 
+  //Se declarar variables para las coordenadas del Sol y Júpiter en el sistema sin rotar puesto que serán utilizadas varias veces.
   double x_s = Planeta[0].Getx();
   double y_s = Planeta[0].Gety();
   double x_j = Planeta[1].Getx();
   double y_j = Planeta[1].Gety();
 
-  double omegaT= omega*t;
+
+  double omegaT= omega*t; //Ángulo que se recorre por unidad de tiempo.
+
+  /*Se cambia al sistema rotante (primado), que satisface el cambio de base dado por la matriz de rotación con theta, el ángulo de giro,
+    igual a omega*T. */
+
   double x_sp = x_s*cos(omegaT) + y_s*sin(omegaT);
   double y_sp = -x_s*sin(omegaT) + y_s*cos(omegaT);
 
   double x_jp = x_j*cos(omegaT) + y_j*sin(omegaT);
   double y_jp = -x_j*sin(omegaT) + y_j*cos(omegaT);
 
-  // fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<endl;
-  fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<" "<<t<<endl;
-  //   fout<<Planeta[0].Getx()<<" "<<Planeta[0].Gety()<<" "<<Planeta[1].Getx()<<" "<<Planeta[1].Gety()<<endl;
+
+  fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<" "<<t<<endl; //Se pasan las coordenadas del sistema primado del Sol y Júpiter además del tiempo.
 
   for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
   Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Um2lambdau2);
