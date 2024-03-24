@@ -29,9 +29,9 @@ class Interaction;
 //--------- Declarar las interfases de las clases---------
 class Cuerpo{
 private:
-  vector3D r,V,F; double m,R;
+  vector3D r,V,F; double m;
 public:
-  void Inicie(double x0,double y0,double z0,double Vx0,double Vy0,double Vz0,double m0,double R0);
+  void Inicie(double x0,double y0,double z0,double Vx0,double Vy0,double Vz0,double m0);
   void BorreFuerza(void){F.load(0,0,0);}; // Inline
   void SumeFuerza(vector3D dF){F+=dF;}; // Inline
   void Mueva_r(double dt,double coeficiente);
@@ -53,8 +53,8 @@ public:
 
 //------- Funciones de la clase cuerpo --------
 void Cuerpo::Inicie(double x0,double y0,double z0,
-                    double Vx0,double Vy0,double Vz0,double m0,double R0){
-  r.load(x0,y0,z0);  V.load(Vx0,Vy0,Vz0); m=m0; R=R0;
+                    double Vx0,double Vy0,double Vz0,double m0){
+  r.load(x0,y0,z0);  V.load(Vx0,Vy0,Vz0); m=m0;
 }
 
 void Cuerpo::Mueva_r(double dt,double coeficiente){
@@ -105,9 +105,9 @@ int main(){
   int i;
 
   //INICIO
-  //---------------(x0,y0,z0,Vx0,   Vy0,Vz0,m0,R0)
-  Planeta[0].Inicie(x0, 0, 0,  0, V0,  0,m0,1.0);
-  Planeta[1].Inicie(x1, 0, 0,  0, V1,  0,m1,0.5);
+  //---------------(x0,y0,z0,Vx0,Vy0,Vz0,m0)
+  Planeta[0].Inicie(x0, 0, 0,  0, V0,  0,m0);
+  Planeta[1].Inicie(x1, 0, 0,  0, V1,  0,m1);
 
   std::ofstream fout;
   fout.open("data.txt");
@@ -116,39 +116,39 @@ int main(){
   //Se calcula el movimiento.
   for(t=0;t<ttotal;t+=dt){
 
-  //Se declarar variables para las coordenadas del Sol y Júpiter en el sistema sin rotar puesto que serán utilizadas varias veces.
-  double x_s = Planeta[0].Getx();
-  double y_s = Planeta[0].Gety();
-  double x_j = Planeta[1].Getx();
-  double y_j = Planeta[1].Gety();
+    //Se declarar variables para las coordenadas del Sol y Júpiter en el sistema sin rotar puesto que serán utilizadas varias veces.
+    double x_s = Planeta[0].Getx();
+    double y_s = Planeta[0].Gety();
+    double x_j = Planeta[1].Getx();
+    double y_j = Planeta[1].Gety();
 
 
-  double omegaT= omega*t; //Ángulo que se recorre por unidad de tiempo.
+    double omegaT= omega*t; //Ángulo que se recorre por unidad de tiempo.
 
-  /*Se cambia al sistema rotante (primado), que satisface el cambio de base dado por la matriz de rotación con theta, el ángulo de giro,
-    igual a omega*T. */
+    /*Se cambia al sistema rotante (primado), que satisface el cambio de base dado por la matriz de rotación con theta, el ángulo de giro,
+      igual a omega*T. */
 
-  double x_sp = x_s*cos(omegaT) + y_s*sin(omegaT);
-  double y_sp = -x_s*sin(omegaT) + y_s*cos(omegaT);
+    double x_sp = x_s*cos(omegaT) + y_s*sin(omegaT);
+    double y_sp = -x_s*sin(omegaT) + y_s*cos(omegaT);
 
-  double x_jp = x_j*cos(omegaT) + y_j*sin(omegaT);
-  double y_jp = -x_j*sin(omegaT) + y_j*cos(omegaT);
+    double x_jp = x_j*cos(omegaT) + y_j*sin(omegaT);
+    double y_jp = -x_j*sin(omegaT) + y_j*cos(omegaT);
 
 
-  fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<" "<<t<<endl; //Se pasan las coordenadas del sistema primado del Sol y Júpiter además del tiempo.
+    fout<<x_sp<<" "<<y_sp<<" "<<x_jp<<" "<<y_jp<<" "<<t<<endl; //Se pasan las coordenadas del sistema primado del Sol y Júpiter además del tiempo.
 
-  for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
-  Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Um2lambdau2);
-  for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,chi);
-  Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,lambda);
-  for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Um2chiplusxi);
-  Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++)Planeta[i].Mueva_V(dt,lambda);
-  for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,chi);
-  Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++)Planeta[i].Mueva_V(dt,Um2lambdau2);
-  for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
+    for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
+    Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,Um2lambdau2);
+    for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,chi);
+    Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++) Planeta[i].Mueva_V(dt,lambda);
+    for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,Um2chiplusxi);
+    Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++)Planeta[i].Mueva_V(dt,lambda);
+    for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,chi);
+    Newton.CalculeTodasLasFuerzas(Planeta); for(i=0;i<N;i++)Planeta[i].Mueva_V(dt,Um2lambdau2);
+    for(i=0;i<N;i++) Planeta[i].Mueva_r(dt,xi);
 
   }
 
   fout.close();
-return 0;
+  return 0;
 }
