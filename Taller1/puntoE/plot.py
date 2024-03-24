@@ -9,59 +9,52 @@ plt.style.use('seaborn-v0_8')
 
 fig, axes = plt.subplots(figsize=(6, 6))
 
-
-
-
-#axes.plot(x_s, y_s, '.', color='yellow', label=r'$(x,y)_{S}$')
-#axes.plot(x_j, y_j, '.', color='black', label=r'$(x,y)_{J}$')
-
-
-
-
-#t = np.linspace(0,len(x_s) , len(x_s))
-# axes[0].plot(t, x_s, '.', color='yellow', label=r'$(x)_{S}$')
-# axes[1].plot(t, y_s, '.', color='yellow', label=r'$(y)_{S}$')
-# axes[2].plot(t, x_j, '.', color='black', label=r'$(x)_{J}$')
-# axes[3].plot(t, y_j, '.', color='black', label=r'$(y)_{J}$')
-# axes[4].plot(t, x_t, '.', color='blue', label=r'$(x)_{T}$')
-# axes[5].plot(t, y_t, '.', color='blue', label=r'$(y)_{T}$')
-
-
-#axes.plot(t, x_t, '.', color='blue', label=r'$(x)_{T}$')
-
-peaks, _ = find_peaks(x_t)
-
-tpeaksD = np.roll(t[peaks], 1)
-tpeak = t[peaks]
-
-resta = tpeak - tpeaksD
-print(np.mean(resta[1:]))
-
-##Maximo global
-max1 = t[np.argmax(x_t[:60000])]
-max2 = t[60000+np.argmax(x_t[60000:])]
-print(max1)
-print(max2)
-print(max2-max1)
-
-
-
-
-
-
-
-
-#axes.legend()
-
-
-
-
-# Se ajustan demás detalles del gráfico.
-
-# axes.set_xlabel('x', fontsize=12)
-# axes.set_ylabel('y', fontsize=12)
-# axes.legend(loc='upper left')
-# axes.grid(True, linestyle='--')
-# axes.set_title("x vs y", fontsize=14)
+axes.plot(t, x_t, ".", color="cyan", label=r"$(x',y')_{T}$")
+axes.set_xlabel("t", fontsize=12)
+axes.set_ylabel("x'", fontsize=12)
+axes.legend(loc='upper right')
+axes.grid(True, linestyle='--')
+axes.set_title("t vs. x'. Perturbado en 5 partes por mil.", fontsize=14)
+axes.ticklabel_format(style='sci', axis='x', scilimits=(0,0))
 plt.tight_layout()
-#fig.savefig('plot.pdf')
+
+
+peaks, _ = find_peaks(x_t) #Se encuentran los máximos locales.
+
+tpeak = t[peaks] #Se hallan los tiempos para dichos picos.
+tpeaksD = np.roll(t[peaks], 1) #Se corren los valores del arreglo en una posición.
+periodos = tpeak - tpeaksD #Se hallan el tiempo que hay entre cada pico.
+periodos = periodos[1:] #Se descarta el primer valor puesto que no aporta información.
+periodo2 = np.mean(periodos)
+print("Periodo 2: ", periodo2)
+
+
+midT = int(len(t)/2)
+
+#Se hallan los tiempos para los cuales corresponden los dos mayores maximos partiendo el intervalo de tiempos en 2.
+tMax1 = t[np.argmax(x_t[:midT])]
+tMax2 = t[midT-1+np.argmax(x_t[midT:])]
+
+#Graficamente, se ve que para esta perturbación se tienen dos picos en el segundo máximo pero
+#parece que la periodicidad se alcanza en el medio de dichos dos máximos. Así, se calcula el tMin entre los dos máximos.
+#Como ya conocemos todos los máximos locales, basta hacer el promedio con el máximo anterior a tMax.
+
+
+
+
+
+
+tolerancia = 10
+indicetMax2 = np.where(np.abs(tpeak - tMax2) <= tolerancia)[0]   #Se halla el índice al cual corresponde tMax2 de todos los picos.
+tMaxAnt2 = tpeak[indicetMax2[0] -1] #Se toma el valor de tiempo del máximo anterior a tMax2
+
+
+
+tMax2 = (tMax2 + tMaxAnt2)/2.0 #Se sobreescribe tMax2.
+
+periodo1 = tMax2 - tMax1
+
+print("Periodo 1: ", periodo1)
+
+
+fig.savefig('plot.pdf')
